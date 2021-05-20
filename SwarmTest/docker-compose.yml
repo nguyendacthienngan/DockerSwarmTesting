@@ -1,0 +1,67 @@
+version: "3.7"
+
+services:
+    service1:
+        image: nguyendacthienngan/swarmtest:dotnet
+        networks:
+            - net1
+        volumes:
+            - vol1:/d1/
+
+        ports:
+            - 8085:8085
+
+        deploy:
+            replicas: 10
+            resources: 
+                # Giới hạn
+                limits:
+                    cpus: '0.5'
+                    memory: 250MB
+                # Được cấp ngay
+                reservations: 
+                    cpus: '0.25'
+                    memory: 50MB
+            # Chính sách khởi động lại các container
+            restart_policy:
+                condition: on-failure
+                
+    service2:
+        image: nguyendacthienngan/swarmtest:node
+        ports:
+            - 8086:8085
+        networks:
+            - net2
+        volumes:
+            - vol1:/d1/
+
+        deploy:
+            replicas: 5
+            resources: 
+                # Giới hạn
+                limits:
+                    cpus: '0.5'
+                    memory: 150MB
+                # Được cấp ngay
+                reservations: 
+                    cpus: '0.25'
+                    memory: 50MB
+            # Chính sách khởi động lại các container
+            restart_policy:
+                condition: on-failure
+             
+networks: 
+    net1:
+    net2:
+        driver: overlay
+        name: www-net2
+
+volumes:
+
+    vol1:
+        driver: local
+        name: v1 
+        driver_opts: 
+            type: none
+            device: "/home/"
+            o: bind
