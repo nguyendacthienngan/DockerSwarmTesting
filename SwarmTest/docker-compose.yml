@@ -1,18 +1,34 @@
 version: "3.7"
-
 services:
+    samba:
+        image: nguyendacthienngan/samba
+        ports:
+            - 139:139
+            - 145:145
+        environment: 
+            smbuser: smbuser
+            password: 1234567
+        volumes:
+            - /home/data/:/data/
+        deploy:
+            # 3 containers tạo trên dịch vụ samba chỉ nằm trên node manager
+            replicas: 3
+            placement: 
+                constraints:
+                    - node.role==manager
+        
     service1:
         image: nguyendacthienngan/swarmtest:dotnet
         networks:
             - net1
         volumes:
             - vol1:/d1/
+            - vol2:/d2/
 
         ports:
             - 8085:8085
-
         deploy:
-            replicas: 10
+            replicas: 5
             resources: 
                 # Giới hạn
                 limits:
@@ -34,6 +50,7 @@ services:
             - net2
         volumes:
             - vol1:/d1/
+            - vol2:/d2/
 
         deploy:
             replicas: 5
@@ -55,9 +72,7 @@ networks:
     net2:
         driver: overlay
         name: www-net2
-
 volumes:
-
     vol1:
         driver: local
         name: v1 
@@ -65,3 +80,11 @@ volumes:
             type: none
             device: "/home/"
             o: bind
+    
+    vol2:
+        driver: local
+        name: v2 
+        driver_opts: 
+            type: cifs
+            device: "//192.168.99.111/data"
+            o: "username=smbuser,password=1234567,file_mode=0777,dir_mode=0777"
